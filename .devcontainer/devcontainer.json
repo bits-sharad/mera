@@ -1,0 +1,27 @@
+{
+    "name": "jobmatchingmodelpoc",
+    "dockerComposeFile": "./docker-compose.local.yml",
+    "service": "local-dev",
+    "workspaceFolder": "/home/build/app",
+    "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "mongodb.mongodb-vscode",
+        "ms-mssql.mssql",
+        "github.vscode-pull-request-github",
+        "bierner.markdown-preview-github-styles",
+        "bierner.markdown-checkbox",
+        "formulahendry.code-runner",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "yzhang.markdown-all-in-one",
+        "firsttris.vscode-jest-runner",
+        "gruntfuggly.todo-tree",
+        "ms-toolsai.jupyter",
+        "ms-python.python"
+    ],
+    "forwardPorts": [4200, 4201, 4202, 8080, 27017, 1433, 8085],
+    "remoteUser": "build",
+    "postCreateCommand": "bash ./.devcontainer/configure-poetry.sh"
+}

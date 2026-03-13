@@ -1,0 +1,108 @@
+<nav id="header" data-cy="header">
+    <ul>
+        <li class="mmc-logo">
+            <a routerLink="/">
+                <img data-cy="logo" src="assets/mmc-logo.svg" />
+            </a>
+        </li>
+        <li class="burger" (click)="toggleMenu()">
+            <i class="material-icons">{{ isMenuOpen ? 'close' : 'menu' }}</i>
+        </li>
+        <li class="menu" [class.is-open]="isMenuOpen">
+            <a href="#" class="menu-item" (click)="toggleMenu()" data-cy="nav-link">Home</a>
+            <a routerLink="/tasks" class="menu-item" (click)="toggleMenu()" data-cy="nav-task-list"
+                >Task List</a
+            >
+            <a routerLink="/mmc-brand" class="menu-item" data-cy="nav-task-list">MMC Brand</a>
+            <a
+                routerLink="/gallery"
+                href="#"
+                class="menu-item"
+                (click)="toggleMenu()"
+                data-cy="nav-link"
+                >Gallery</a
+            >
+            <a routerLink="/">
+                <img class="polaris-logo" src="assets/polaris_logo.svg" />
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<main class="main" data-cy="main" [class.blur]="isMenuOpen">
+    @if (apiUnreachable === true || apiError === true) {
+        <div class="main__api_error">
+            @if (apiUnreachable === true) {
+                <p>Tasks API is unreachable</p>
+            }
+            @if (apiError === true) {
+                <p>Tasks API error</p>
+            }
+        </div>
+    }
+    <micro-lenai-webcomponent
+        backEndPoint="{{ microLenAiApiUrl }}"
+        authToken="{{ this.oktaAuth.getAccessToken() }}"
+        appName="Polaris Blueprint"
+        userOnly="false"
+        checkFacts="false"
+        chatBoxHeader="Micro LenAI"
+        chatBoxWelcomeMessage="Hi! I'm Micro-LenAI. What do you want to know about today?"
+        brandColor="#002c77"
+        brandColorSecondary="#1d4ed8"
+    ></micro-lenai-webcomponent>
+    <router-outlet></router-outlet>
+</main>
+
+<footer class="footer responsive-grid" data-cy="footer">
+    <div class="responsive-grid-col">
+        <a routerLink="/">
+            <img src="assets/mmc-logo-footer.svg" />
+        </a>
+        <div class="mmc-typography-body-14-large-regular">
+            Marsh McLennan is the leader in risk, strategy and people, helping clients navigate a
+            dynamic environment through four global businesses.
+        </div>
+
+        <div class="responsive-grid responsive-grid-gap mmc-typography-small-12-regular">
+            <div>Terms of Use</div>
+            <div>Privacy Notice</div>
+            <div>Cookie Policy</div>
+            <div>Manage Cookies</div>
+        </div>
+
+        <div class="mmc-typography-small-12-regular" data-cy="copyright">
+            © {{ currentYear }} Marsh & McLennan Companies, LLC. All Rights Reserved.
+        </div>
+    </div>
+
+    <div class="responsive-grid-col responsive-grid-flex-grow responsive-grid-flex-end">
+        <div class="responsive-grid responsive-grid-gap">
+            <div>Marsh</div>
+            <div>GuyCarpenter</div>
+            <div>Mercer</div>
+            <div>OliverWyman</div>
+        </div>
+
+        <div class="responsive-grid responsive-grid-gap">
+            <img class="responsive-grid-social-img" src="assets/footer-linkedin.svg" />
+            <img class="responsive-grid-social-img" src="assets/footer-twitter.svg" />
+            <img class="responsive-grid-social-img" src="assets/footer-facebook.svg" />
+            <img class="responsive-grid-social-img" src="assets/footer-instagram.svg" />
+            <img class="responsive-grid-social-img" src="assets/footer-link.svg" />
+        </div>
+
+        <p data-cy="version" class="mmc-typography-body-14-large-regular">v{{ appVersion }}</p>
+        <p class="mmc-typography-body-14-large-regular">
+            Powered by
+            <a
+                href="https://mmcglobal.sharepoint.com/sites/EnterpriseArchitecture/SitePages/Polaris.aspx"
+                title="Created with Polaris"
+                target="_blank"
+            >
+                Polaris</a
+            >
+            <!-- Please don't remove this Powered by Polaris -->
+        </p>
+    </div>
+</footer>

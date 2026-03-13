@@ -1,0 +1,6 @@
+version: '3.8'
+services:
+    local-api-db:
+        image: prod-images.mgti-dal-so-art.mrshmc.com/companion-mongo:4.4.3-bionic
+        volumes:
+            - /data/db

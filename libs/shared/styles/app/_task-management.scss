@@ -1,0 +1,17 @@
+@import 'colours';
+@import 'mixins';
+.task-management {
+    height: 100%;
+
+    @include flex-row;
+
+    &__list,
+    &__details {
+        padding: 5rem;
+        @include flex-grow;
+    }
+
+    &__title {
+        margin-bottom: 3rem;
+    }
+}

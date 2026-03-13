@@ -1,0 +1,85 @@
+@import 'main.scss';
+
+$menuHeight: 60px;
+
+#header {
+    ul {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .mmc-logo {
+        a {
+            padding: 0 8px;
+            font-size: 1.4rem;
+            text-decoration: none;
+            color: #07c;
+        }
+    }
+
+    .burger {
+        padding: 0 10px;
+        border-left: 1px solid #eee;
+        display: none;
+        cursor: pointer;
+
+        i {
+            color: #999;
+            line-height: $menuHeight;
+        }
+
+        @media (max-width: 800px) {
+            display: block;
+        }
+    }
+
+    .menu {
+        display: flex;
+        align-items: center;
+        border-radius: 1rem;
+        margin-left: 1rem;
+        margin-right: 2rem;
+        z-index: 999;
+        border-radius: 1rem;
+
+        @media (max-width: 800px) {
+            display: none;
+
+            &.is-open {
+                display: block;
+                position: absolute;
+                top: #{$menuHeight + 2};
+                background: #fff;
+                width: 96%;
+                border-color: black;
+
+                .menu-item {
+                    border-bottom: 1px solid #cccccc;
+                    display: flex;
+                    flex-direction: row-reverse;
+                    margin-right: 2rem;
+                    border: none;
+                }
+            }
+        }
+
+        .menu-item {
+            padding: 0 10px;
+            height: $menuHeight;
+            line-height: $menuHeight;
+            text-decoration: none;
+            display: block;
+        }
+    }
+}
+
+@media (max-width: 800px) {
+    main.blur {
+        filter: blur(10px);
+    }
+}

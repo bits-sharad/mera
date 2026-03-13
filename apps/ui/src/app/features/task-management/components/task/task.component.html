@@ -1,0 +1,26 @@
+<div class="mmc-example mmc-shadows-shadow1">
+    <div class="priority">
+        <div class="mmc-typography-body-14-large-regular" data-cy="task-priority">
+            Priority: {{ task.priority }}
+        </div>
+
+        <div class="icons">
+            <a routerLink="/tasks/edit/{{ task.id }}">
+                <img src="assets/edit-icon.svg" data-cy="task-edit-btn" class="edit-button" />
+            </a>
+            <img
+                src="assets/delete-icon.svg"
+                (click)="onDeleteClick()"
+                data-cy="task-delete-btn"
+                class="delete-button"
+            />
+        </div>
+    </div>
+
+    <div class="mmc-typography-title5-20-bold" data-cy="task-name">
+        {{ task.name }}
+    </div>
+    <div class="mmc-typography-body-16-large-regular" data-cy="task-desc">
+        {{ task.description }}
+    </div>
+</div>

@@ -1,0 +1,18 @@
+/* Your styles goes here. */
+@import 'colours';
+@import 'mixins';
+
+.main {
+    flex: 1 0 0;
+    background-color: $secondary;
+    color: $text-secondary-contrast;
+    &__api_error {
+        width: 100vw;
+        background-color: red;
+        color: yellow;
+        font-size: 2rem;
+        position: relative;
+        text-align: center;
+        display: block;
+    }
+}

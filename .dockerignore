@@ -1,0 +1,22 @@
+# The following are not included in this file as it is expected that they may
+# be used in the near future for either building images, or for docker-in-docker
+# scenarios: /dist/, /deployments/
+
+/docs/
+/.github/
+/coverage/
+/.vscode/
+
+**/notebook
+**/*_test.py
+
+**/Dockerfile*
+**/docker-compose*
+
+**/node_modules/*
+
+**/.gitignore
+**/.gitkeep
+**/README.md
+**/.editorconfig
+

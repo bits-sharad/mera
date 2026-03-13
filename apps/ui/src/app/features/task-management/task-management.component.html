@@ -1,0 +1,10 @@
+<div data-cy="task-management">
+    <polaris-task-list
+        [tasks]="tasks"
+        [isDisabled]="isEditMode"
+        (addTask)="addNewTask()"
+        (editTask)="editTask($event)"
+        (deleteTask)="deleteTask($event)"
+    >
+    </polaris-task-list>
+</div>

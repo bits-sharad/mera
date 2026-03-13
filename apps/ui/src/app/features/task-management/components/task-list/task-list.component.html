@@ -1,0 +1,26 @@
+<div class="flex-layout">
+    <div class="container mmc-shadows-shadow1">
+        <div class="content">
+            <div class="mmc-typography-title1-32-regular-caps" data-cy="title">TASKS</div>
+            @for (task of tasks; track taskTrackBy(i, task); let i = $index) {
+                <polaris-task
+                    [task]="task"
+                    [isDisabled]="isDisabled"
+                    (edit)="onTaskEditClick(task, i)"
+                    (delete)="onTaskDeleteClick(task, i)"
+                    class="list__task"
+                    data-cy="task-item"
+                >
+                </polaris-task>
+            }
+            @if (tasks.length === 0) {
+                <div class="no-pending">
+                    <p class="list__message">There are no pending tasks.</p>
+                </div>
+            }
+            <a routerLink="/tasks/add" class="add-button-wrapper" data-cy="task-add-btn">
+                <img src="assets/add-icon.svg" class="add-button"
+            /></a>
+        </div>
+    </div>
+</div>

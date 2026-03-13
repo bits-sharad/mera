@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+    local-dev:
+        image: prod-images.mgti-dal-so-art.mrshmc.com/polaris/images/nodejs-24-build-cypress-env-with-python314:1.0.0
+        volumes:
+            - ..:/home/build/app:cached
+        environment:
+            - NODE_ENV=dev
+            - APIGEE_ORGANIZATION=mmc-bedford-int-non-prod
+            - APIGEE_CLIENT_ID=S5kAd3p0LVAr18s98yAs5gVFmhBxtmQdr6IACkaUfujxxGG9
+            - UVICORN_RELOAD=true
+            - API_MONGODB_API_DB_URL=mongodb://local-api-db:27017/app
+            - API_DATASTORE_NAME=app
+            - AI_MODAL=mmc-tech-gpt-4o-mini-128k-2024-07-18
+        command: sleep infinity
+        depends_on:
+            - local-api-db
+    local-api-db:
+        extends:
+            file: ./services/datastore-mongodb-service.yml
+            service: local-api-db

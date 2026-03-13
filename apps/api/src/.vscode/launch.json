@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run main.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/apps/api/src/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/apps/api/src/",
+
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/apps/api/src/"
+            }
+        }
+    ]
+}

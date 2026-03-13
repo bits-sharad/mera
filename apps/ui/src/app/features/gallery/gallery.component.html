@@ -1,0 +1,13 @@
+<div>
+    <h1 class="gallery-header">Web Components Gallery</h1>
+    <div class="gallery-container">
+        @for (link of links; track link; let i = $index) {
+            <div class="gallery-tile">
+                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                    <img [src]="link.thumbnail" [alt]="link.title" />
+                    <h3 class="gallery-title">{{ link.title }}</h3>
+                </a>
+            </div>
+        }
+    </div>
+</div>

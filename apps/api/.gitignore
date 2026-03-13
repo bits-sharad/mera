@@ -1,0 +1,11 @@
+__pypackages__/
+.poetry/
+*.egg-info/
+*.egg
+*.whl
+dist/
+build/
+__pycache__/
+.pytest_cache
+.Venv/
+.venv/

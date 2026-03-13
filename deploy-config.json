@@ -1,0 +1,35 @@
+{
+    "images": [
+        {
+            "image-name": "api",
+            "dockerfile": "./deployments/docker/Dockerfile.api",
+            "distLocation": "./dist/apps/api/"
+        },
+        {
+            "image-name": "ui",
+            "dockerfile": "./deployments/docker/Dockerfile.ui",
+            "distLocation": "./dist/apps/ui/"
+        }
+    ],
+    "apps": [
+        {
+            "name": "api",
+            "jobs": {
+                "monitor-rollout": true,
+                "monitor-rollout-timeout-mins": 5,
+                "has-serverless": false
+            }
+        },
+        {
+            "name": "ui",
+            "jobs": {
+                "monitor-rollout": true,
+                "monitor-rollout-timeout-mins": 5,
+                "has-serverless": false
+            }
+        }
+    ],
+    "updaters": [],
+    "tests": [],
+    "database": []
+}

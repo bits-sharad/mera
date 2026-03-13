@@ -1,0 +1,29 @@
+@import 'app/home';
+
+.form-input {
+    border-radius: 0.25rem;
+    border-color: rgba(121, 116, 126, 1);
+    border-style: solid;
+    border-width: 1px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-input-div {
+    padding: 0.25rem 0.875rem;
+    padding-bottom: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.form-input-field > input,
+textarea {
+    margin-top: 0.5rem;
+    width: 100%;
+    border: none;
+    overflow: hidden;
+}
+
+.form-input-field > input:focus,
+textarea:focus {
+    outline: none;
+}

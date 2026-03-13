@@ -1,0 +1,28 @@
+<div class="okta-callback">
+    <div class="okta-callback__container">
+        @if (error === undefined) {
+            <div>
+                <h1 class="okta-callback__title">Authenticating...</h1>
+            </div>
+        }
+        @if (error !== undefined) {
+            <div>
+                <h1 class="okta-callback__title">Something Went Wrong!</h1>
+                <p class="okta-callback__message">
+                    There was an issue logging you into Polaris. Please ensure that you have
+                    requested access by following the instructions
+                    <a href="{{ accessDocs }}" target="blank">here</a>.
+                </p>
+                <p class="okta-callback__message">
+                    For additional support, please see our
+                    <a href="{{ polarisDocs }}" target="blank">documentation</a>
+                    or
+                    <a
+                        href="mailto:#MMCGLPolarisContactUs@mmc.com?subject=Sharing Feedback From Using Polaris"
+                        >contact us</a
+                    >.
+                </p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,21 @@
+@import 'main.scss';
+.list {
+    &__items {
+        margin-bottom: 2rem;
+        padding: 2rem;
+
+        min-height: 30rem;
+        max-height: 50rem;
+        overflow-y: auto;
+
+        @include thin-border-primary-contrast;
+    }
+
+    &__message {
+        font-size: 1.2rem;
+    }
+
+    &__actions {
+        @include flex-right;
+    }
+}

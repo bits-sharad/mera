@@ -1,0 +1,9 @@
+**/Dockerfile*
+**/docker-compose*
+
+**/node_modules/*
+
+**/.gitignore
+**/.gitkeep
+**/README.md
+**/.editorconfig

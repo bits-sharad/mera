@@ -1,0 +1,35 @@
+@import 'mixins';
+
+.form-group {
+    @include flex-row;
+
+    margin-bottom: 2rem;
+
+    &__label {
+        flex: 0 0 15rem;
+        margin-right: 2rem;
+
+        font-size: 1.8rem;
+        text-align: right;
+    }
+
+    &__input {
+        width: 0; // Override default browser width.
+        padding: 0.5rem;
+
+        border: none;
+        border-radius: 0.5rem;
+
+        &--small {
+            flex: 0 1 5rem;
+        }
+
+        &--medium {
+            flex: 0 1 30rem;
+        }
+
+        &--large {
+            @include flex-grow;
+        }
+    }
+}

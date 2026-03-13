@@ -1,0 +1,24 @@
+@import 'main.scss';
+.details {
+    &__form {
+        margin-bottom: 2rem;
+        padding: 2rem;
+
+        @include thin-border-primary-contrast;
+    }
+
+    &__actions {
+        @include flex-right;
+    }
+
+    &__btn {
+        margin-left: 1rem;
+    }
+}
+//Accounts for
+input {
+    width: 0;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+}

@@ -1,0 +1,25 @@
+name: Deploy Artifact
+on:
+  repository_dispatch:
+    types: [devops-trigger]
+run-name:
+  ${{ github.event.client_payload.issue_key }} deploy  ${{ github.event.client_payload.commit_sha }}
+  to ${{ toJson(github.event.client_payload.deploy_env) }} with message  "${{
+  github.event.client_payload.commit_msg }}"
+jobs:
+  deploy:
+    name: Deploy
+    uses: mmctech/mmc-tech-unified-pipeline/.github/workflows/deployModules.yaml@v2.3
+    strategy:
+      fail-fast: false
+      matrix:
+        deploy_env: ${{ github.event.client_payload.deploy_env }}
+    with:
+      deploy_env: ${{ matrix.deploy_env }}
+    secrets: inherit
+  result:
+    name: Consolidate Deploy Status
+    if: always()
+    needs: deploy
+    uses: mmctech/mmc-tech-unified-pipeline/.github/workflows/updateDeployment.yaml@v2.3
+    secrets: inherit

@@ -1,0 +1,51 @@
+<div class="details">
+    <div class="details__form">
+        <div class="form-group">
+            <label for="nameInput" class="form-group__label">Name:</label>
+            <input
+                [(ngModel)]="taskToEdit.name"
+                id="nameInput"
+                type="text"
+                class="form-group__input form-group__input--medium"
+                data-cy="task-edit-title"
+            />
+        </div>
+
+        <div class="form-group">
+            <label for="descriptionInput" class="form-group__label">Description:</label>
+            <input
+                [(ngModel)]="taskToEdit.description"
+                id="descriptionInput"
+                type="text"
+                class="form-group__input form-group__input--large"
+                data-cy="task-edit-desc"
+            />
+        </div>
+
+        <div class="form-group">
+            <label for="priorityInput" class="form-group__label">Priority:</label>
+            <input
+                [(ngModel)]="taskToEdit.priority"
+                id="priorityInput"
+                type="number"
+                class="form-group__input form-group__input--small"
+                data-cy="task-edit-priority"
+            />
+        </div>
+    </div>
+    <div class="details__actions">
+        <polaris-button
+            [label]="'Close'"
+            [theme]="'white'"
+            (clicked)="onCloseClick()"
+            class="details__close details__btn"
+        >
+        </polaris-button>
+        <polaris-button
+            [label]="'Save'"
+            (clicked)="onSaveClick()"
+            class="details__save details__btn"
+            data-cy="task-save-btn"
+        ></polaris-button>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "target": "es2022",
+        "module": "esnext",
+        "lib": ["es2017", "dom"],
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@app/config": ["libs/shared/config/src/index.ts"],
+            "@jobmatchingmodelpoc/shared-angular-utils/*": ["libs/shared/angular-utils/src/*"],
+            "@jobmatchingmodelpoc/common-styles": ["libs/shared/styles"],
+            "@jobmatchingmodelpoc/shared-utils-cypress": ["libs/shared/utils/cypress/src/index.ts"],
+            "@jobmatchingmodelpoc/shared-utils-testing": ["libs/shared/utils/testing/src/index.ts"]
+        },
+        "resolveJsonModule": true
+    },
+    "exclude": ["node_modules", "tmp"]
+}

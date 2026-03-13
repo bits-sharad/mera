@@ -1,0 +1,73 @@
+<div class="flex-layout">
+    <div class="container mmc-shadows-shadow1">
+        <div class="content">
+            @if (!task.isNew) {
+                <div class="mmc-typography-title1-32-regular-caps">TASK DETAILS</div>
+            }
+            @if (task.isNew) {
+                <div class="mmc-typography-title1-32-regular-caps">ADD NEW TASK</div>
+            }
+            <div class="form-input">
+                <div class="form-input-div">
+                    <div class="mmc-typography-small-12-light">Name</div>
+                    <div class="form-input-field">
+                        <input
+                            [(ngModel)]="task.name"
+                            placeholder="Name"
+                            type="text"
+                            id="input-2"
+                            class="mmc-typography-body-16-large-regular"
+                            data-cy="task-edit-title"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-input">
+                <div class="form-input-div">
+                    <div class="mmc-typography-small-12-light">Description</div>
+                    <div class="form-input-field">
+                        <textarea
+                            [(ngModel)]="task.description"
+                            placeholder="Description"
+                            type="text"
+                            id="input-2"
+                            rows="3"
+                            class="mmc-typography-body-16-large-regular"
+                            data-cy="task-edit-desc"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-input">
+                <div class="form-input-div">
+                    <div class="mmc-typography-small-12-light">Priority</div>
+                    <div class="form-input-field">
+                        <input
+                            [(ngModel)]="task.priority"
+                            placeholder="Priority"
+                            type="number"
+                            id="input-2"
+                            class="mmc-typography-body-16-large-regular"
+                            data-cy="task-edit-priority"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="responsive-grid responsive-grid-gap responsive-grid-justify-flex-end">
+                <div
+                    class="btn-primary btn-primary-default"
+                    (click)="saveDetails()"
+                    data-cy="task-save-btn"
+                >
+                    <div>Save</div>
+                </div>
+                <div class="btn-primary btn-primary-default" (click)="closeDetails()">
+                    <div>Close</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

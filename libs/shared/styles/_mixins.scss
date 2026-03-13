@@ -1,0 +1,30 @@
+@import 'colours';
+
+@mixin flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+@mixin flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+@mixin flex-grow {
+    flex: 1 0 0;
+}
+
+@mixin flex-right {
+    @include flex-row;
+    justify-content: flex-end;
+}
+
+@mixin flex-center {
+    @include flex-row;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin thin-border-primary-contrast {
+    border: 0.1rem solid $primary;
+}

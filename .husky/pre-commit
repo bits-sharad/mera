@@ -1,0 +1,19 @@
+#!/bin/sh
+. "$(dirname "$0")/common.sh"
+
+npx lint-staged
+
+local_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+valid_branch_regex="^(feat|build|ci|cd|docs|fix|perf|refactor|test)\/[a-z]+\/[a-z0-9'-_]{5,}$"
+
+message="There is an issue with your branch name. Names in this project must follow the format \
+ [(feat|build|ci|cd|docs|fix|perf|refactor|test)/initials/what-your-branch-does].\nYour commit \
+ will be rejected.\nYou should rename your branch to a valid name and try again. More information \
+ can be found here: https://mmcglobal.sharepoint.com/sites/EnterpriseArchitecture/SitePages/Commit-Message-Format.aspx"
+
+if echo "$local_branch" | grep -Eqv "$valid_branch_regex"
+then
+    echo "$message"
+    exit 1
+fi

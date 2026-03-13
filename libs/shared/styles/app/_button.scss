@@ -1,0 +1,40 @@
+@import 'colours';
+@import 'general';
+
+.btn {
+    padding: 0.5rem 1rem;
+
+    border-radius: 0.5rem;
+    border: none;
+    font-family: 'Noto-Sans';
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+
+    &--small {
+        height: 2rem;
+        padding: 0.2rem 0.5rem;
+
+        font-size: 1rem;
+    }
+
+    &--primary {
+        background-color: $primary;
+        color: $text-primary-contrast;
+    }
+
+    &--secondary {
+        background-color: $secondary;
+        color: $text-secondary-contrast;
+    }
+
+    &--white {
+        background-color: $white;
+        color: $text-white-contrast;
+    }
+}

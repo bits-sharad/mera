@@ -1,0 +1,123 @@
+{
+    "name": "api",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/api",
+    "projectType": "application",
+    "targets": {
+        "start": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "uv sync",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run api",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "test": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "uv sync --group dev",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run pytest",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "format:check": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "echo running python formatting..."
+                    },
+                    {
+                        "command": "uv sync --group dev",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run ruff format src --check",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "format:fix": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "echo running python formatting..."
+                    },
+                    {
+                        "command": "uv sync --group dev",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run ruff format src",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "lint:check": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "echo running python linting..."
+                    },
+                    {
+                        "command": "uv sync --group dev",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run ruff check .",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "lint:fix": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/api",
+                "commands": [
+                    {
+                        "command": "echo running python linting..."
+                    },
+                    {
+                        "command": "uv sync --group dev",
+                        "forwardAllArgs": false
+                    },
+                    {
+                        "command": "uv run ruff check --fix .",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        }
+    },
+    "tags": []
+}

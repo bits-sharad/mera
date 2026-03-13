@@ -1,0 +1,42 @@
+FROM base-images.mgti-dal-so-art.mrshmc.com/mmc/ubuntu/python:3.12-jammy AS base
+
+LABEL APPLICATIONKEY "jbsltons"
+
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get install -y jq unzip 
+
+
+# Install the platform CLI to be used for authenticating with Hashicorp Vault in AWS.
+RUN PLATFORM_VAULT_CLI_VERSION=$(curl -s https://mgti-dal-so-art.mrshmc.com/artifactory/raw/mmc-platform-cli/latest.txt) \   
+    && curl -L -o mpc https://mgti-dal-so-art.mrshmc.com/artifactory/raw/mmc-platform-cli/${PLATFORM_VAULT_CLI_VERSION} \
+    && chmod +x mpc \
+    && mv ./mpc /usr/bin
+
+FROM base as prod
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+ENV PATH="/root/.local/bin:${PATH}"
+
+RUN useradd -m python
+USER python
+RUN mkdir -p /home/python/app
+WORKDIR /home/python/app
+
+USER root
+
+COPY --chown=python:python ./deployments/docker/entrypoint.sh ./entrypoint.sh
+
+RUN chmod u+x entrypoint.sh
+
+
+COPY --chown=python:python ./apps/api/ /home/python/app/
+
+# Install all Python dependencies using pip (from requirements.txt)
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8080
+
+ENTRYPOINT ["./entrypoint.sh"]
+
+CMD ["uv", "run", "api"]

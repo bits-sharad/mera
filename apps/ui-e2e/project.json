@@ -1,0 +1,59 @@
+{
+    "name": "ui-e2e",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/ui-e2e/src",
+    "projectType": "application",
+    "tags": [],
+    "implicitDependencies": ["ui"],
+    "targets": {
+        "e2e": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": [
+                    {
+                        "command": "echo running angular and react e2e tests. Cypress runtime will be installed as required."
+                    },
+                    {
+                        "command": "npx cypress install"
+                    },
+                    {
+                        "command": "nx run ui-e2e:ui --env.API_NAME='api'"
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "lint": {
+            "executor": "nx:run-commands",
+            "options": {
+                "cwd": "apps/ui-e2e",
+                "commands": [
+                    {
+                        "command": "npx eslint .",
+                        "forwardAllArgs": false
+                    }
+                ],
+                "parallel": false
+            }
+        },
+        "ui": {
+            "executor": "@nx/cypress:cypress",
+            "options": {
+                "cypressConfig": "apps/ui-e2e/cypress.config.ts",
+                "tsConfig": "apps/ui-e2e/tsconfig.json",
+                "devServerTarget": "ui:serve:e2e",
+                "stylePreprocessorOptions": {
+                    "includePaths": ["libs/shared/styles/"]
+                }
+            },
+            "configurations": {
+                "production": {
+                    "devServerTarget": "ui:serve:production"
+                },
+                "development": {
+                    "devServerTarget": "ui:serve:development"
+                }
+            }
+        }
+    }
+}

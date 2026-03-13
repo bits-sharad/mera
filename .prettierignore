@@ -1,0 +1,13 @@
+# Add files here to ignore them from prettier formatting
+.angular
+/_cicd
+/dist
+/coverage
+**/node_modules
+*.pem
+package-lock.json
+migrations.json
+/.nx/cache
+/.nx/workspace-data
+/pipeline-repo
+/.venv

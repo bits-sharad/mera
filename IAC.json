@@ -1,0 +1,25 @@
+{
+    "applicationKey": "jobmatchingmodelpoc",
+    "applicationCode": "jbsltons",
+    "polaris-schematic-python-microservice": [
+        {
+            "name": "api",
+            "directory": "",
+            "portNumber": "8080",
+            "Ai": true,
+            "datastore": "mongodb"
+        }
+    ],
+    "polaris-schematic-ui-angular": [
+        {
+            "name": "ui",
+            "directory": "",
+            "portNumber": "4200",
+            "targetApi": {
+                "name": "api",
+                "portNumber": 8080
+            }
+        }
+    ],
+    "svcAccCreationHandled": true
+}

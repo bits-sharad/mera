@@ -1,0 +1,109 @@
+2026-01-09 21:47:38,725 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 21:47:38,726 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Main Responsibilities: Provide management with accurate and timely forecasts of balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios; monitor, analyze, and report interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing; develop and maintain ALM models, perform simulations, and produce financial projections for capital planning and stress testing. Required Qualifications: Bachelor's Degree or equivalent experience with 5-7 years in financial services, preferably credit union or financial institution analysis. Scope: Individual contributor role within the financial analysis or risk management department. Skills and Abilities: Proficient in ALM software such as SunGard Bancware ALM, QRM, or VM Desk; strong knowledge of financial modeling, statistical analysis, and interest rate risk management. Reporting Structure: Not explicitly mentioned. Department: Financial analysis / Risk management. Tools and Methodologies: ALM software (SunGard Bancware ALM, QRM, VM Desk), statistical analysis, Monte Carlo simulations, scenario and stress testing, Bloomberg, Federal Reserve Bank data, Treasury Department data, Global Insight data.
+2026-01-09 21:47:38,726 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,High Tech']
+2026-01-09 21:47:40,227 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 21:47:41,263 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 21:47:41,264 INFO apps.api.src.services.mjl.search.context_search: familycode:GMA subfamilycode:3 
+2026-01-09 21:47:41,264 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:8 
+2026-01-09 21:47:41,264 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:3 
+2026-01-09 21:47:41,264 INFO apps.api.src.services.mjl.search.context_search: familycode:TRD subfamilycode:4 
+2026-01-09 21:47:41,264 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:1 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:5 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:5 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:2 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:5 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:4 
+2026-01-09 21:47:41,265 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:6 
+2026-01-09 21:47:41,266 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:1 
+2026-01-09 21:47:41,266 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:4 
+2026-01-09 21:47:41,266 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:3 
+2026-01-09 21:47:41,266 INFO apps.api.src.services.mjl.search.context_search: familycode:REA subfamilycode:4 
+2026-01-09 21:47:41,267 INFO apps.api.src.services.mjl.search.context_search: familycode:DAW subfamilycode:7 
+2026-01-09 21:47:41,267 INFO apps.api.src.services.mjl.search.context_search: familycode:TRD subfamilycode:2 
+2026-01-09 21:47:41,267 INFO apps.api.src.services.mjl.search.context_search: familycode:DAW subfamilycode:9 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:ITC subfamilycode:4 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:OGC subfamilycode:11 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:LCA subfamilycode:2 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:1 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:2 
+2026-01-09 21:47:41,268 INFO apps.api.src.services.mjl.search.context_search: familycode:GMA subfamilycode:2 
+2026-01-09 21:47:41,269 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:4 
+2026-01-09 21:47:41,269 INFO apps.api.src.services.mjl.search.context_search: familycode:HRM subfamilycode:9 
+2026-01-09 21:47:41,269 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:10 
+2026-01-09 21:47:41,270 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:9 
+2026-01-09 21:47:41,270 INFO apps.api.src.services.mjl.search.context_search: familycode:LCA subfamilycode:5 
+2026-01-09 21:47:41,270 INFO apps.api.src.services.mjl.search.context_search: familycode:AIN subfamilycode:1 
+2026-01-09 21:47:42,514 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 21:48:19,832 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 21:48:19,833 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Main Responsibilities: Provide management with accurate and timely forecasts of balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios; monitor, analyze, and report interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing; develop and maintain ALM models, perform simulations, and produce financial projections for capital planning and stress testing. Required Qualifications: Bachelor's Degree or equivalent experience with 5-7 years in financial services or credit union analysis. Scope: Individual contributor role within the financial services department focusing on asset/liability management and risk analysis. Skills and Abilities: Proficient in ALM software such as SunGard Bancware ALM, QRM, or VM Desk, with strong knowledge of financial modeling and statistical analysis techniques. Reports to: Senior management. Department: Financial Services/Asset Liability Management. Tools and Methodologies: ALM software (SunGard Bancware ALM, QRM, VM Desk), statistical analysis, Monte Carlo simulations, scenario and stress testing, Bloomberg, Federal Reserve Bank data, Treasury Department data, Global Insight market data.
+2026-01-09 21:48:19,833 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services']
+2026-01-09 21:48:21,349 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 21:48:22,388 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 21:48:22,388 INFO apps.api.src.services.mjl.search.context_search: familycode:GMA subfamilycode:3 
+2026-01-09 21:48:22,389 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:8 
+2026-01-09 21:48:22,389 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:3 
+2026-01-09 21:48:22,389 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:1 
+2026-01-09 21:48:22,389 INFO apps.api.src.services.mjl.search.context_search: familycode:TRD subfamilycode:4 
+2026-01-09 21:48:22,390 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:5 
+2026-01-09 21:48:22,390 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:4 
+2026-01-09 21:48:22,390 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:5 
+2026-01-09 21:48:22,390 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:5 
+2026-01-09 21:48:22,390 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:4 
+2026-01-09 21:48:22,391 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:2 
+2026-01-09 21:48:22,391 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:3 
+2026-01-09 21:48:22,391 INFO apps.api.src.services.mjl.search.context_search: familycode:REA subfamilycode:4 
+2026-01-09 21:48:22,391 INFO apps.api.src.services.mjl.search.context_search: familycode:CCB subfamilycode:1 
+2026-01-09 21:48:22,392 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:6 
+2026-01-09 21:48:22,392 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:2 
+2026-01-09 21:48:22,392 INFO apps.api.src.services.mjl.search.context_search: familycode:OGC subfamilycode:11 
+2026-01-09 21:48:22,392 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:1 
+2026-01-09 21:48:22,393 INFO apps.api.src.services.mjl.search.context_search: familycode:TRD subfamilycode:2 
+2026-01-09 21:48:22,393 INFO apps.api.src.services.mjl.search.context_search: familycode:DAW subfamilycode:7 
+2026-01-09 21:48:22,393 INFO apps.api.src.services.mjl.search.context_search: familycode:DAW subfamilycode:9 
+2026-01-09 21:48:22,394 INFO apps.api.src.services.mjl.search.context_search: familycode:CMB subfamilycode:1 
+2026-01-09 21:48:22,394 INFO apps.api.src.services.mjl.search.context_search: familycode:HRM subfamilycode:9 
+2026-01-09 21:48:22,394 INFO apps.api.src.services.mjl.search.context_search: familycode:ITC subfamilycode:4 
+2026-01-09 21:48:22,395 INFO apps.api.src.services.mjl.search.context_search: familycode:DAW subfamilycode:6 
+2026-01-09 21:48:22,395 INFO apps.api.src.services.mjl.search.context_search: familycode:LCA subfamilycode:2 
+2026-01-09 21:48:22,395 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:5 
+2026-01-09 21:48:22,410 INFO apps.api.src.services.mjl.search.context_search: familycode:AIN subfamilycode:1 
+2026-01-09 21:48:22,411 INFO apps.api.src.services.mjl.search.context_search: familycode:AFS subfamilycode:5 
+2026-01-09 21:48:22,412 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:10 
+2026-01-09 21:48:23,405 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:08:40,759 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:08:40,760 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and hedging strategies.
+2026-01-09 22:08:40,761 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services']
+2026-01-09 22:08:42,535 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:08:43,585 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:08:43,586 INFO apps.api.src.services.mjl.search.context_search: familycode:GMA subfamilycode:3 
+2026-01-09 22:08:43,586 INFO apps.api.src.services.mjl.search.context_search: familycode:FIN subfamilycode:8 
+2026-01-09 22:08:43,587 INFO apps.api.src.services.mjl.search.context_search: familycode:AMT subfamilycode:3 
+2026-01-09 22:08:44,925 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:14:33,403 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:14:33,406 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and hedging strategies.
+2026-01-09 22:14:33,408 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,High Tech']
+2026-01-09 22:14:34,923 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:32:43,847 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:32:43,852 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and hedging strategies.
+2026-01-09 22:32:43,853 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,Insurance']
+2026-01-09 22:32:45,304 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:35:39,531 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:35:39,533 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and hedging strategies.
+2026-01-09 22:35:39,533 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,High Tech']
+2026-01-09 22:35:41,150 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:35:46,375 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:57:55,173 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:57:55,174 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations including yield curve shocks, and conducts statistical analysis for capital planning and stress testing. Requires Bachelor's degree and 5-7 years of financial services experience. Uses financial systems such as SunGard bancware ALM, QRM, or VM desk. Works within financial services department focusing on asset and liability management and risk analysis at company level.
+2026-01-09 22:57:55,175 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,Insurance']
+2026-01-09 22:57:56,930 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:58:21,363 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:58:29,555 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 22:58:52,128 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 22:58:52,128 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and hedging strategies.
+2026-01-09 22:58:52,128 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,High Tech']
+2026-01-09 22:59:06,289 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 23:00:16,707 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 23:00:18,120 INFO apps.api.src.services.mjl.search.context_search: JobService connected to MongoDB: jobmatchingmodelpocDev
+2026-01-09 23:00:35,660 INFO apps.api.src.services.mjl.search.context_search: Input Job Title: Asset Liability Analyst
+2026-01-09 23:00:35,660 INFO apps.api.src.services.mjl.search.context_search: Input Job Description: Responsible for forecasting balance sheet, net economic value (NEV), and net interest income (NII) under various scenarios, preparing reports for senior management. Monitors and analyzes interest rate risk exposure using asset/liability management (ALM) software through scenario analysis and stress testing. Develops and maintains ALM models, performs simulations, statistical analysis, and backtesting to support capital planning, stress testing, and liquidity management.
+2026-01-09 23:00:35,667 INFO apps.api.src.services.mjl.search.context_search: Input industry: ['Financial Services', 'Financial Services,High Tech']

@@ -1,0 +1,16 @@
+@import 'app/home';
+
+.priority {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    align-self: stretch;
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.delete-button {
+    cursor: pointer;
+    margin-left: 0.4rem;
+}

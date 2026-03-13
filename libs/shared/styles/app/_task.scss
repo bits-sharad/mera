@@ -1,0 +1,34 @@
+@import 'main.scss';
+
+.task {
+    margin-bottom: 3rem;
+
+    &__name {
+        font-size: 1.8rem;
+    }
+
+    &__priority {
+        margin-top: 0.5rem;
+
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    &__description {
+        margin-top: 0.5rem;
+
+        font-size: 1.2rem;
+    }
+
+    &__actions {
+        @include flex-right;
+    }
+
+    &__btn {
+        margin-left: 1rem;
+    }
+}
+//react
+button {
+    margin-left: 1rem;
+}

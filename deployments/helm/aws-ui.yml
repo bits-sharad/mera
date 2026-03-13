@@ -1,0 +1,93 @@
+tenantId: ${businessUnit}
+tenantTeam: ${businessUnit}
+appTier: ${APP_TIER}
+tier: ${TIER}
+appId: ${repoName}
+appContextPath: ${APP_CONTEXT_PATH}
+appOwner: ${businessUnit}
+appComponent: ${PROJECT_NAME}
+appEnvironment: ${deploy_env}
+appdeploy_env: ${deploy_env}
+containerPort: ${API_PORT_NUMBER}
+svcDiscoveryId: ${appName}-${deploy_env}
+isPolarisApp: ${IS_POLARIS}
+polarisServiceAccount: ${KUBERNETES_SERVICE_ACCOUNT_NAME}
+isPolarisAppDB: ${IS_POLARIS_DB}
+image:
+    repository: ${JFROG_PROD_REPO}/${businessUnit}/${appShortKey}/${repoName}/${module}
+    tag: ${image_tag}
+    # pullPolicy: "Always" #default: IfNotPresent
+secretEnv: ${vault_secrets}
+env:
+    VAULT_NAMESPACE: $VAULT_NAMESPACE
+    VAULT_ROLE_NAME: $VAULT_ROLE_NAME
+    VAULT_URL: $VAULT_URL
+    SECRETS_URL: $SECRETS_URL
+    VAULT_ADDR: $VAULT_ADDR
+    PROJ_NAME: $PROJECT_NAME/$APP_RELEASENAME:$IMAGE_TAG
+    DD_SERVICE: $PROJECT_NAME
+    DD_VERSION: $IMAGE_TAG
+    DD_ENV: $RUNTIME_ENV
+    DD_APM_ENABLED: false # Please consult with Polaris documentation on APM tracing at https://mmcglobal.sharepoint.com/sites/EnterpriseArchitecture/SitePages/Application-Performance-Monitoring.aspx
+    DD_TRACE_SAMPLE_RATE: 1.0
+    VAULT_AWS_AUTH_BACKEND: $VAULT_AWS_AUTH_BACKEND
+    VAULT_AWS_REGION: $VAULT_AWS_REGION
+    VAULT_USE_AWS_AUTH: $VAULT_USE_AWS_AUTH
+    DEPLOY_ENV: ${deploy_env}
+    MONGO_DB_CMD: $MONGO_DB_CMD
+    VAULT_DB_URL: $VAULT_DB_URL
+    VAULT_TOKEN_RW: $VAULT_TOKEN_RW
+    VAULT_ROLE_TYPE: $VAULT_ROLE_TYPE
+livenessProbe:
+    path: ${APP_CONTEXT_PATH}${HEALTH_CHECK_URI}
+readinessProbe:
+    path: ${APP_CONTEXT_PATH}${HEALTH_CHECK_URI}
+resources:
+    limits:
+        cpu: ${POD_RESOURCES_LIMITS_CPU}
+        memory: ${POD_RESOURCES_LIMITS_MEMORY}
+    requests:
+        cpu: ${POD_RESOURCES_REQUESTS_CPU}
+        memory: ${POD_RESOURCES_REQUESTS_MEMORY}
+nodeAffinity:
+    key: ${NODE_AFFINITY_KEY}
+    value: ${NODE_AFFINITY_VALUE}
+ingress:
+    enabled: true
+    hosts:
+        - ${HOSTNAME}
+    # annotations:
+    #   deployment: ${DEPLOY_TYPE}
+    # size: ${INGRESS_BODY_SIZE} #default: 10m
+    # bufferSize: ${INGRESS_BUFFER_SIZE} #default: 10k
+    # ProxyReadTimeout: ${INGRESS_PROXY_READ_TIMEOUT} #default: 121
+    # ProxySendTimeout: ${INGRESS_PROXY_SEND_TIMEOUT} #default: 121
+    # ProxyConnectTimeout: ${INGRESS_PROXY_CONNECT_TIMEOUT} #default: 15
+    tls:
+        - hosts:
+              - ${HOSTNAME}
+          secretName: 'dev-ocio-global-investor-internal-portal-euwt1-dev-oss2-mercer-com-crt'
+replicaCount: ${OSS2_REPLICA_COUNT} #default: 1
+podAnnotations:
+    ad.datadoghq.com/tags: |
+        {
+          "env": ${deploy_env},
+          "service": ${PROJECT_NAME},
+          "version": ${image_tag},
+          "os": "Ubuntu",
+          "app": ${ci},
+          "appShortKey": ${appShortKey},
+          "app_tier": ${APP_TIER},
+          "businessUnit": ${businessUnit},
+          "business_owner": ${tpmEmail},
+          "tpm": ${tpmGithubHandle},
+          "support_team_dl": ${SUPPORT_GROUP},
+          "hashed_dl": "true",
+          "troux_id": ${TROUX_ID},
+          "app_config_item": ${ci}
+        }
+serviceAccount:
+    create: ${CREATE_SVC_ACCOUNT} #default: true
+    annotations:
+        eks.amazonaws.com/role-arn: $AWS_ROLE_ARN
+workloadKind: ${WORKLOAD_KIND}

@@ -1,0 +1,28 @@
+*   text=auto
+
+# Text file types
+*.config    text eol=lf
+*.js        text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.yaml      text eol=lf
+
+# Shell scripts
+*.bash  text eol=lf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.sh    text eol=lf
+*.ps1   text eol=crlf
+
+# Binary files
+*.pdf   binary
+
+# Specific files
+.editorconfig   text eol=lf
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.prettierignore text eol=lf
+yarn.lock       text eol=lf
+
+# Specific folders
+.husky/**   text eol=lf
