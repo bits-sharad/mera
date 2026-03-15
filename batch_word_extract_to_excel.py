@@ -35,8 +35,16 @@ try:
 except ImportError:
     pass
 
-AUTH_URL = "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/authentication/v1/oauth2/token"
-EXTRACT_URL = "https://stg1.mmc-dallas-int-non-prod-ingress.mgti.mmc.com/coreapi/document-processing/v1/documents/extract"
+# Override via .env if your environment uses different URLs
+AUTH_URL = os.getenv(
+    "AUTH_URL",
+    "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/authentication/v1/oauth2/token",
+)
+DOC_PROCESSING_BASE = os.getenv(
+    "DOC_PROCESSING_API_BASE_URL",
+    "https://stg1.mmc-dallas-int-non-prod-ingress.mgti.mmc.com/coreapi/document-processing/v1",
+)
+EXTRACT_URL = f"{DOC_PROCESSING_BASE.rstrip('/')}/documents/extract"
 
 WORD_EXTENSIONS = {".doc", ".docx"}
 MIME_TYPES = {
@@ -64,23 +72,49 @@ async def fetch_token() -> str:
     client_secret = os.getenv("FETCH_TOKEN_PASSWORD")
     if not client_id or not client_secret:
         raise ValueError("Set FETCH_TOKEN_USERNAME and FETCH_TOKEN_PASSWORD")
-    async with httpx.AsyncClient(timeout=30) as client:
-        r = await client.post(AUTH_URL, auth=(client_id, client_secret), data={"grant_type": "client_credentials"})
-        r.raise_for_status()
-        return r.json()["access_token"]
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(AUTH_URL, auth=(client_id, client_secret), data={"grant_type": "client_credentials"})
+            r.raise_for_status()
+            return r.json()["access_token"]
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            raise ValueError(f"Auth URL not found (404): {AUTH_URL}. Set AUTH_URL in .env if different.") from e
+        raise
+
+
+def _extract_docx_local(content: bytes) -> str:
+    """Fallback: extract .docx locally when API unavailable."""
+    try:
+        from docx import Document
+        import io
+        doc = Document(io.BytesIO(content))
+        return "\n".join(p.text for p in doc.paragraphs)
+    except ImportError:
+        return "[ERROR] Install python-docx for local fallback: pip install python-docx"
+    except Exception as e:
+        return f"[ERROR] Local extract failed: {e}"
 
 
 async def extract_text(filename: str, content: bytes, mime: str, token: str, api_key: str) -> str:
     body = {"filename": filename, "mime_type": mime, "content_b64": base64.b64encode(content).decode("utf-8")}
     headers = {"Authorization": f"Bearer {token}", "x-api-key": api_key}
-    async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.post(EXTRACT_URL, json=body, headers=headers)
-        r.raise_for_status()
-        data = r.json()
-    raw = data.get("text") or data.get("content") or data.get("extracted_text") or data.get("body") or ""
-    if isinstance(raw, list):
-        raw = " ".join(str(t) for t in raw)
-    return clean_extracted_text(str(raw))
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(EXTRACT_URL, json=body, headers=headers)
+            r.raise_for_status()
+            data = r.json()
+        raw = data.get("text") or data.get("content") or data.get("extracted_text") or data.get("body") or ""
+        if isinstance(raw, list):
+            raw = " ".join(str(t) for t in raw)
+        return clean_extracted_text(str(raw))
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            if filename.lower().endswith(".docx"):
+                print(f"  API 404, using local extraction for {filename}")
+                return clean_extracted_text(_extract_docx_local(content))
+            return f"[ERROR] API 404 - {EXTRACT_URL} not found. Check DOC_PROCESSING_API_BASE_URL in .env"
+        raise
 
 
 def _check_env() -> str:

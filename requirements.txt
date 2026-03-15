@@ -2,3 +2,4 @@ pandas>=2.0
 openpyxl>=3.0
 httpx>=0.24
 python-dotenv>=1.0
+python-docx>=0.8  # optional: local fallback when API returns 404
