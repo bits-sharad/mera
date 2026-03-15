@@ -37,8 +37,27 @@ def preprocess_text(text: str | None) -> str:
     return text.strip()
 
 
+def _cell_text(cell) -> str:
+    """Recursively get all text from a cell, including nested tables."""
+    parts = [p.text for p in cell.paragraphs if p.text.strip()]
+    for nested_table in getattr(cell, "tables", []):
+        parts.append(_table_text(nested_table))
+    return "\n".join(parts)
+
+
+def _table_text(table) -> str:
+    """Recursively get all text from a table, including nested tables."""
+    parts = []
+    for row in table.rows:
+        for cell in row.cells:
+            text = _cell_text(cell)
+            if text.strip():
+                parts.append(text)
+    return "\n".join(parts)
+
+
 def _extract_docx(content: bytes) -> str:
-    """Extract all text from .docx: paragraphs, tables, headers, footers."""
+    """Extract all text from .docx: paragraphs, tables (including nested), headers, footers."""
     from docx import Document
     doc = Document(io.BytesIO(content))
     parts = []
@@ -46,44 +65,78 @@ def _extract_docx(content: bytes) -> str:
         if p.text.strip():
             parts.append(p.text)
     for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                if cell.text.strip():
-                    parts.append(cell.text)
+        parts.append(_table_text(table))
     for section in doc.sections:
         for header in (section.header, section.first_page_header):
             if header:
                 for p in header.paragraphs:
                     if p.text.strip():
                         parts.append(p.text)
+                for t in header.tables:
+                    parts.append(_table_text(t))
         for footer in (section.footer, section.first_page_footer):
             if footer:
                 for p in footer.paragraphs:
                     if p.text.strip():
                         parts.append(p.text)
+                for t in footer.tables:
+                    parts.append(_table_text(t))
     return "\n".join(parts) if parts else ""
 
 
-def _extract_doc(content: bytes) -> str:
-    """Extract from .doc using docx2txt."""
-    with tempfile.NamedTemporaryFile(suffix=".doc", delete=False) as f:
+def _extract_with_docx2txt(content: bytes, ext: str) -> str:
+    """Extract using docx2txt - parses raw XML, gets tables and all content."""
+    with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as f:
         f.write(content)
         path = f.name
     try:
         import docx2txt
         return docx2txt.process(path) or ""
     finally:
-        os.unlink(path)
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+
+def _extract_docx_raw_xml(content: bytes) -> str:
+    """Extract all text from docx by parsing XML - catches text in shapes, content controls, etc."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+    ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    texts = []
+    with zipfile.ZipFile(io.BytesIO(content), "r") as z:
+        for name in z.namelist():
+            if "word/" in name and name.endswith(".xml"):
+                try:
+                    tree = ET.parse(z.open(name))
+                    for el in tree.getroot().iter(f"{{{ns}}}t"):
+                        if el.text:
+                            texts.append(el.text)
+                        if el.tail:
+                            texts.append(el.tail)
+                except ET.ParseError:
+                    pass
+    return "".join(texts)
 
 
 def extract_text(content: bytes, filename: str) -> str:
-    """Extract text using Python libraries."""
+    """Extract text using Python libraries. Tries docx2txt first (comprehensive), fallback to python-docx."""
     ext = Path(filename).suffix.lower()
     try:
         if ext == ".docx":
-            raw = _extract_docx(content)
+            raw = _extract_with_docx2txt(content, ".docx")
+            docx_text = _extract_docx(content)
+            if len(docx_text) > len(raw):
+                raw = docx_text
+            xml_text = _extract_docx_raw_xml(content)
+            if len(xml_text) > len(raw):
+                raw = xml_text
         elif ext == ".doc":
-            raw = _extract_doc(content)
+            try:
+                raw = _extract_with_docx2txt(content, ".doc")
+            except Exception:
+                raw = "[ERROR] .doc extraction failed. Try converting to .docx."
         else:
             return ""
         return preprocess_text(raw)
