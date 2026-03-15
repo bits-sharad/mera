@@ -110,7 +110,7 @@ def _extract_docx_local(content: bytes) -> str:
         return f"[ERROR] Local extract failed: {e}"
 
 
-async def extract_text(filename: str, content: bytes, mime: str, token: str, api_key: str) -> str:
+async def extract_text(filename: str, content: bytes, mime: str, token: str, api_key: str, api_unavailable: list) -> str:
     body = {"filename": filename, "mime_type": mime, "content_b64": base64.b64encode(content).decode("utf-8")}
     headers = {"Authorization": f"Bearer {token}", "x-api-key": api_key}
     try:
@@ -127,9 +127,11 @@ async def extract_text(filename: str, content: bytes, mime: str, token: str, api
             raise ValueError("Token invalid or expired. Check FETCH_TOKEN_USERNAME and FETCH_TOKEN_PASSWORD.") from e
         if e.response.status_code == 404:
             if filename.lower().endswith(".docx"):
-                print(f"  API 404, using local extraction for {filename}")
+                if not api_unavailable:
+                    api_unavailable.append(True)
+                    print("Mercer API unavailable (404), using local extraction for .docx files.")
                 return clean_extracted_text(_extract_docx_local(content))
-            return f"[ERROR] API 404 - {EXTRACT_URL} not found. Check DOC_PROCESSING_API_BASE_URL in .env"
+            return f"[ERROR] API 404 - .doc files need Mercer API. Check DOC_PROCESSING_API_BASE_URL in .env"
         raise
 
 
@@ -147,25 +149,37 @@ def _check_env() -> str:
     return api_key
 
 
-async def extract_and_save(input_dir: Path, output_path: Path) -> None:
-    api_key = _check_env()
-    print("Fetching auth token...")
-    token = await fetch_token()
-    print("Token obtained. Uploading and extracting documents...")
+async def extract_and_save(input_dir: Path, output_path: Path, local_only: bool = False) -> None:
+    token = ""
+    api_key = ""
+    if not local_only:
+        api_key = _check_env()
+        print("Fetching auth token...")
+        token = await fetch_token()
+        print("Token obtained. Uploading and extracting documents...")
+    else:
+        print("Using local extraction (.docx only)...")
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
         return
     results = []
+    api_unavailable = [] if not local_only else [True]
     for i, file_path in enumerate(files):
         try:
             content = file_path.read_bytes()
             mime = MIME_TYPES.get(file_path.suffix.lower(), "application/octet-stream")
-            try:
-                await upload_file(file_path.name, content, mime, token, api_key)
-            except httpx.HTTPStatusError:
-                pass  # Continue to extract if upload fails (e.g. 404)
-            text = await extract_text(file_path.name, content, mime, token, api_key)
+            if local_only:
+                if file_path.suffix.lower() == ".docx":
+                    text = clean_extracted_text(_extract_docx_local(content))
+                else:
+                    text = "[ERROR] .doc requires Mercer API. Run without --local-only"
+            else:
+                try:
+                    await upload_file(file_path.name, content, mime, token, api_key)
+                except httpx.HTTPStatusError:
+                    pass
+                text = await extract_text(file_path.name, content, mime, token, api_key, api_unavailable)
             results.append((file_path.name, text))
             print(f"  [{i+1}/{len(files)}] {file_path.name}")
         except Exception as e:
@@ -180,12 +194,13 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("-i", "--input-dir", type=Path, required=True, help="Folder with Word docs")
     p.add_argument("-o", "--output", type=Path, default=Path("extracted_output.xlsx"), help="Output Excel")
+    p.add_argument("--local-only", action="store_true", help="Skip Mercer API, use local extraction (.docx only)")
     args = p.parse_args()
     if not args.input_dir.exists():
         print(f"Directory not found: {args.input_dir}")
         exit(1)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    asyncio.run(extract_and_save(args.input_dir, args.output))
+    asyncio.run(extract_and_save(args.input_dir, args.output, local_only=args.local_only))
 
 
 if __name__ == "__main__":
