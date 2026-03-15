@@ -27,10 +27,11 @@ from pathlib import Path
 import httpx
 import pandas as pd
 
-# Load .env if present (pip install python-dotenv)
+# Load .env from script directory (pip install python-dotenv)
+_script_dir = Path(__file__).resolve().parent
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(_script_dir / ".env")
 except ImportError:
     pass
 
@@ -94,9 +95,10 @@ def _check_env() -> str:
     if not password:
         missing.append("FETCH_TOKEN_PASSWORD")
     if missing:
+        env_file = _script_dir / ".env"
         raise ValueError(
-            f"Missing env vars: {', '.join(missing)}. "
-            "Set them or create a .env file with DOC_PROCESSING_API_KEY, FETCH_TOKEN_USERNAME, FETCH_TOKEN_PASSWORD"
+            f"Missing: {', '.join(missing)}. "
+            f"Create {env_file} from .env.example and add your Mercer API credentials."
         )
     return api_key
 
