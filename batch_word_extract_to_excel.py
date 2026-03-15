@@ -5,12 +5,14 @@ Extract text from Word documents via Mercer Document Processing API and export t
 Usage:
     python batch_word_extract_to_excel.py -i "path/to/docs" -o "output.xlsx"
 
-Environment (required):
+Setup:
+    1. Copy .env.example to .env and fill in your Mercer API credentials
+    2. pip install -r requirements.txt
+
+Environment (required in .env or shell):
     DOC_PROCESSING_API_KEY
     FETCH_TOKEN_USERNAME
     FETCH_TOKEN_PASSWORD
-
-Dependencies: pip install pandas openpyxl httpx
 """
 from __future__ import annotations
 
@@ -24,6 +26,13 @@ from pathlib import Path
 
 import httpx
 import pandas as pd
+
+# Load .env if present (pip install python-dotenv)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 AUTH_URL = "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/authentication/v1/oauth2/token"
 EXTRACT_URL = "https://stg1.mmc-dallas-int-non-prod-ingress.mgti.mmc.com/coreapi/document-processing/v1/documents/extract"
@@ -73,10 +82,27 @@ async def extract_text(filename: str, content: bytes, mime: str, token: str, api
     return clean_extracted_text(str(raw))
 
 
-async def extract_and_save(input_dir: Path, output_path: Path) -> None:
+def _check_env() -> str:
     api_key = os.getenv("DOC_PROCESSING_API_KEY")
+    username = os.getenv("FETCH_TOKEN_USERNAME")
+    password = os.getenv("FETCH_TOKEN_PASSWORD")
+    missing = []
     if not api_key:
-        raise ValueError("Set DOC_PROCESSING_API_KEY")
+        missing.append("DOC_PROCESSING_API_KEY")
+    if not username:
+        missing.append("FETCH_TOKEN_USERNAME")
+    if not password:
+        missing.append("FETCH_TOKEN_PASSWORD")
+    if missing:
+        raise ValueError(
+            f"Missing env vars: {', '.join(missing)}. "
+            "Set them or create a .env file with DOC_PROCESSING_API_KEY, FETCH_TOKEN_USERNAME, FETCH_TOKEN_PASSWORD"
+        )
+    return api_key
+
+
+async def extract_and_save(input_dir: Path, output_path: Path) -> None:
+    api_key = _check_env()
     token = await fetch_token()
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
