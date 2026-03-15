@@ -11,7 +11,7 @@ Setup:
 
 Environment (required in .env):
     DOC_PROCESSING_API_KEY
-    AUTH_TOKEN  (or FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD to fetch token)
+    FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD (to auto-fetch token)
 """
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ DOC_PROCESSING_BASE = os.getenv(
     "DOC_PROCESSING_API_BASE_URL",
     "https://stg1.mmc-dallas-int-non-prod-ingress.mgti.mmc.com/coreapi/document-processing/v1",
 )
+UPLOAD_URL = f"{DOC_PROCESSING_BASE.rstrip('/')}/documents/upload"
 EXTRACT_URL = f"{DOC_PROCESSING_BASE.rstrip('/')}/documents/extract"
 
 WORD_EXTENSIONS = {".doc", ".docx"}
@@ -66,24 +67,34 @@ def clean_extracted_text(text: str | None) -> str:
     return text.strip()
 
 
-async def get_token() -> str:
-    """Use AUTH_TOKEN if set, else fetch via client credentials."""
+async def fetch_token() -> str:
+    """Fetch token via OAuth client credentials. Use AUTH_TOKEN if set."""
     token = os.getenv("AUTH_TOKEN", "").strip()
     if token:
         return token
     client_id = os.getenv("FETCH_TOKEN_USERNAME")
     client_secret = os.getenv("FETCH_TOKEN_PASSWORD")
     if not client_id or not client_secret:
-        raise ValueError("Set AUTH_TOKEN or (FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD) in .env")
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.post(AUTH_URL, auth=(client_id, client_secret), data={"grant_type": "client_credentials"})
-            r.raise_for_status()
-            return r.json()["access_token"]
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            raise ValueError(f"Auth URL not found (404): {AUTH_URL}. Set AUTH_URL in .env if different.") from e
-        raise
+        raise ValueError("Set FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD in .env")
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(AUTH_URL, auth=(client_id, client_secret), data={"grant_type": "client_credentials"})
+        if r.status_code == 401:
+            raise ValueError("Invalid FETCH_TOKEN_USERNAME or FETCH_TOKEN_PASSWORD.")
+        if r.status_code == 404:
+            raise ValueError(f"Auth URL not found (404): {AUTH_URL}. Set AUTH_URL in .env.")
+        r.raise_for_status()
+        return r.json()["access_token"]
+
+
+async def upload_file(filename: str, content: bytes, mime: str, token: str, api_key: str) -> None:
+    """Upload document to Mercer API."""
+    body = {"filename": filename, "mime_type": mime, "content_b64": base64.b64encode(content).decode("utf-8")}
+    headers = {"Authorization": f"Bearer {token}", "x-api-key": api_key}
+    async with httpx.AsyncClient(timeout=60) as client:
+        r = await client.post(UPLOAD_URL, json=body, headers=headers)
+        if r.status_code == 401:
+            raise ValueError("Token invalid or expired. Check FETCH_TOKEN_USERNAME and FETCH_TOKEN_PASSWORD.")
+        r.raise_for_status()
 
 
 def _extract_docx_local(content: bytes) -> str:
@@ -112,6 +123,8 @@ async def extract_text(filename: str, content: bytes, mime: str, token: str, api
             raw = " ".join(str(t) for t in raw)
         return clean_extracted_text(str(raw))
     except httpx.HTTPStatusError as e:
+        if e.response.status_code == 401:
+            raise ValueError("Token invalid or expired. Check FETCH_TOKEN_USERNAME and FETCH_TOKEN_PASSWORD.") from e
         if e.response.status_code == 404:
             if filename.lower().endswith(".docx"):
                 print(f"  API 404, using local extraction for {filename}")
@@ -136,20 +149,28 @@ def _check_env() -> str:
 
 async def extract_and_save(input_dir: Path, output_path: Path) -> None:
     api_key = _check_env()
-    token = await get_token()
+    print("Fetching auth token...")
+    token = await fetch_token()
+    print("Token obtained. Uploading and extracting documents...")
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
         return
     results = []
-    for file_path in files:
+    for i, file_path in enumerate(files):
         try:
             content = file_path.read_bytes()
             mime = MIME_TYPES.get(file_path.suffix.lower(), "application/octet-stream")
+            try:
+                await upload_file(file_path.name, content, mime, token, api_key)
+            except httpx.HTTPStatusError:
+                pass  # Continue to extract if upload fails (e.g. 404)
             text = await extract_text(file_path.name, content, mime, token, api_key)
             results.append((file_path.name, text))
+            print(f"  [{i+1}/{len(files)}] {file_path.name}")
         except Exception as e:
             results.append((file_path.name, f"[ERROR] {str(e)}"))
+            print(f"  [{i+1}/{len(files)}] {file_path.name} - {e}")
     df = pd.DataFrame(results, columns=["fileName", "extractedText"])
     df.to_excel(output_path, index=False, engine="openpyxl")
     print(f"Wrote {len(results)} rows to {output_path}")
