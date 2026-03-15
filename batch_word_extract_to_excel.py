@@ -9,10 +9,9 @@ Setup:
     1. Copy .env.example to .env and fill in your Mercer API credentials
     2. pip install -r requirements.txt
 
-Environment (required in .env or shell):
+Environment (required in .env):
     DOC_PROCESSING_API_KEY
-    FETCH_TOKEN_USERNAME
-    FETCH_TOKEN_PASSWORD
+    AUTH_TOKEN  (or FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD to fetch token)
 """
 from __future__ import annotations
 
@@ -67,11 +66,15 @@ def clean_extracted_text(text: str | None) -> str:
     return text.strip()
 
 
-async def fetch_token() -> str:
+async def get_token() -> str:
+    """Use AUTH_TOKEN if set, else fetch via client credentials."""
+    token = os.getenv("AUTH_TOKEN", "").strip()
+    if token:
+        return token
     client_id = os.getenv("FETCH_TOKEN_USERNAME")
     client_secret = os.getenv("FETCH_TOKEN_PASSWORD")
     if not client_id or not client_secret:
-        raise ValueError("Set FETCH_TOKEN_USERNAME and FETCH_TOKEN_PASSWORD")
+        raise ValueError("Set AUTH_TOKEN or (FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD) in .env")
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(AUTH_URL, auth=(client_id, client_secret), data={"grant_type": "client_credentials"})
@@ -119,27 +122,21 @@ async def extract_text(filename: str, content: bytes, mime: str, token: str, api
 
 def _check_env() -> str:
     api_key = os.getenv("DOC_PROCESSING_API_KEY")
+    token = os.getenv("AUTH_TOKEN", "").strip()
     username = os.getenv("FETCH_TOKEN_USERNAME")
     password = os.getenv("FETCH_TOKEN_PASSWORD")
-    missing = []
     if not api_key:
-        missing.append("DOC_PROCESSING_API_KEY")
-    if not username:
-        missing.append("FETCH_TOKEN_USERNAME")
-    if not password:
-        missing.append("FETCH_TOKEN_PASSWORD")
-    if missing:
-        env_file = _script_dir / ".env"
+        raise ValueError("Set DOC_PROCESSING_API_KEY in .env")
+    if not token and (not username or not password):
         raise ValueError(
-            f"Missing: {', '.join(missing)}. "
-            f"Create {env_file} from .env.example and add your Mercer API credentials."
+            "Set AUTH_TOKEN (direct token) or FETCH_TOKEN_USERNAME + FETCH_TOKEN_PASSWORD in .env"
         )
     return api_key
 
 
 async def extract_and_save(input_dir: Path, output_path: Path) -> None:
     api_key = _check_env()
-    token = await fetch_token()
+    token = await get_token()
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
