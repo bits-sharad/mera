@@ -143,6 +143,56 @@ def _extract_docx_raw_xml(content: bytes) -> str:
     return "".join(texts)
 
 
+def _normalize_field_match(cell_text: str, field_lower: str) -> bool:
+    """Check if cell text matches a field name (exact, prefix, or contains)."""
+    ct = cell_text.lower().strip()
+    return ct == field_lower or ct.startswith(field_lower + " ") or ct.startswith(field_lower + ":") or field_lower in ct
+
+
+def _extract_fields_from_tables(content: bytes) -> dict[str, str]:
+    """Extract field-value pairs directly from Word tables. Handles:
+    - 2-col table: [Field] [Value] per row
+    - Multi-col: field in any cell, value in next cell
+    """
+    from docx import Document
+    result = {f: "" for f in MANDATORY_FIELDS}
+    field_names_lower = {f.lower().strip(): f for f in MANDATORY_FIELDS}
+
+    def scan_table(table):
+        for row in table.rows:
+            cells = [_cell_text(c).strip() for c in row.cells]
+            for i, cell in enumerate(cells):
+                if i + 1 >= len(cells):
+                    continue
+                cell_lower = cell.lower().strip()
+                for fl, field in field_names_lower.items():
+                    if result[field]:
+                        continue
+                    if _normalize_field_match(cell, fl):
+                        val = cells[i + 1].strip()
+                        if val and val.lower() not in field_names_lower:
+                            max_len = 8000 if field == "Job Description" else 1000
+                            result[field] = val[:max_len]
+                        break
+
+    try:
+        doc = Document(io.BytesIO(content))
+        for table in doc.tables:
+            scan_table(table)
+        for section in doc.sections:
+            for header in (section.header, section.first_page_header):
+                if header:
+                    for t in header.tables:
+                        scan_table(t)
+            for footer in (section.footer, section.first_page_footer):
+                if footer:
+                    for t in footer.tables:
+                        scan_table(t)
+    except Exception:
+        pass
+    return result
+
+
 def extract_text(content: bytes, filename: str) -> str:
     """Extract text using Python libraries. Tries docx2txt first (comprehensive), fallback to python-docx."""
     ext = Path(filename).suffix.lower()
@@ -215,7 +265,11 @@ def extract_and_save(input_dir: Path, output_path: Path) -> None:
     for i, file_path in enumerate(files):
         content = file_path.read_bytes()
         text = extract_text(content, file_path.name)
-        fields = parse_fields(text)
+        fields_from_tables = _extract_fields_from_tables(content) if file_path.suffix.lower() == ".docx" else {}
+        fields_from_text = parse_fields(text)
+        fields = {}
+        for f in MANDATORY_FIELDS:
+            fields[f] = fields_from_tables.get(f) or fields_from_text.get(f) or ""
         row = {"fileName": file_path.name, "extractedText": text}
         row.update(fields)
         rows.append(row)
