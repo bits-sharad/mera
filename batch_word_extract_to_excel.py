@@ -52,6 +52,77 @@ MANDATORY_FIELDS = [
     "Job Location",
 ]
 
+# Alternative keys LLM might return -> canonical field
+FIELD_ALIASES = {
+    "organization name": "Organization Name",
+    "organization_name": "Organization Name",
+    "organizationname": "Organization Name",
+    "organization": "Organization Name",
+    "org name": "Organization Name",
+    "company": "Organization Name",
+    "job code": "Job Code",
+    "job_code": "Job Code",
+    "jobcode": "Job Code",
+    "position title": "Position title",
+    "position_title": "Position title",
+    "positiontitle": "Position title",
+    "position": "Position title",
+    "job title": "Position title",
+    "title": "Position title",
+    "leadership competency category": "Leadership Competency Category",
+    "leadership_competency_category": "Leadership Competency Category",
+    "current compensation grade": "Current Compensation Grade",
+    "current_compensation_grade": "Current Compensation Grade",
+    "compensation grade": "Current Compensation Grade",
+    "comments notes": "Comments/Notes",
+    "comments/notes": "Comments/Notes",
+    "comments": "Comments/Notes",
+    "notes": "Comments/Notes",
+    "typically reports to": "Typically Reports to",
+    "typically_reports_to": "Typically Reports to",
+    "reports to": "Typically Reports to",
+    "employee id": "Employee ID",
+    "employee_id": "Employee ID",
+    "employeeid": "Employee ID",
+    "manager id": "Manager ID",
+    "manager_id": "Manager ID",
+    "managerid": "Manager ID",
+    "direct report counts": "Direct report counts",
+    "direct_report_counts": "Direct report counts",
+    "direct reports": "Direct report counts",
+    "people management flag": "People Management Flag",
+    "people_management_flag": "People Management Flag",
+    "people management": "People Management Flag",
+    "job level": "Job Level",
+    "job_level": "Job Level",
+    "joblevel": "Job Level",
+    "level": "Job Level",
+    "minimum experience": "Minimum Experience",
+    "minimum_experience": "Minimum Experience",
+    "experience": "Minimum Experience",
+    "pay grade": "Pay grade",
+    "pay_grade": "Pay grade",
+    "paygrade": "Pay grade",
+    "department": "Department",
+    "job title from source": "Job Title (from Source Job Description)",
+    "job title from source job description": "Job Title (from Source Job Description)",
+    "job title (from source job description)": "Job Title (from Source Job Description)",
+    "source job title": "Job Title (from Source Job Description)",
+    "job description": "Job Description",
+    "job_description": "Job Description",
+    "jobdescription": "Job Description",
+    "description": "Job Description",
+    "base salary": "Base Salary",
+    "base_salary": "Base Salary",
+    "basesalary": "Base Salary",
+    "salary": "Base Salary",
+    "compensation": "Base Salary",
+    "job location": "Job Location",
+    "job_location": "Job Location",
+    "joblocation": "Job Location",
+    "location": "Job Location",
+}
+
 
 def preprocess_text(text: str | None) -> str:
     """Clean and preprocess: remove URLs, HTML, control chars, normalize whitespace."""
@@ -231,19 +302,34 @@ def _is_field_label(line: str) -> bool:
 
 
 def _normalize_key(k: str) -> str:
-    return re.sub(r"\s+", " ", k.lower().strip().replace("_", " ").replace("-", " "))
+    return re.sub(r"\s+", " ", k.lower().strip().replace("_", " ").replace("-", " ").replace("(", "").replace(")", ""))
 
 
-def _match_llm_key(out: dict, field: str) -> str:
-    """Find value in LLM output using fuzzy key match."""
-    fn = _normalize_key(field)
-    for k, v in out.items():
-        if _normalize_key(k) == fn and v is not None:
-            return str(v).strip()
-    return ""
+def _map_llm_response_to_fields(out: dict) -> dict[str, str]:
+    """Map LLM response keys (any format) to our canonical MANDATORY_FIELDS."""
+    result = {f: "" for f in MANDATORY_FIELDS}
+    for raw_key, val in out.items():
+        if val is None or (isinstance(val, str) and not val.strip()):
+            continue
+        val_str = str(val).strip()
+        if not val_str:
+            continue
+        nk = _normalize_key(raw_key)
+        canonical = FIELD_ALIASES.get(nk)
+        if canonical and not result[canonical]:
+            result[canonical] = val_str[:8000] if canonical == "Job Description" else val_str[:1000]
+            continue
+        for field in MANDATORY_FIELDS:
+            if result[field]:
+                continue
+            fn = _normalize_key(field)
+            if nk == fn or fn in nk or nk in fn:
+                result[field] = val_str[:8000] if field == "Job Description" else val_str[:1000]
+                break
+    return result
 
 
-async def _extract_fields_with_llm(text: str) -> dict[str, str]:
+async def _extract_fields_with_llm(text: str, debug: bool = False) -> dict[str, str]:
     """Use Mercer LLM API to extract field values from document text."""
     url = os.getenv("CORE_API_BASE_URL", "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/coreapi/openai/v1/deployments/mmc-tech-gpt-35-turbo-smart-latest/chat/completions")
     api_key = os.getenv("CORE_API_KEY")
@@ -255,15 +341,17 @@ async def _extract_fields_with_llm(text: str) -> dict[str, str]:
         return {}
     print("  [LLM] Calling Mercer API...")
     field_list = "\n".join(f"- {f}" for f in MANDATORY_FIELDS)
-    prompt = f"""Extract these fields from the document. Return ONLY valid JSON. Use "" for missing.
+    prompt = f"""Extract these fields from the document. Return ONLY valid JSON. Use "" for missing values.
+Accept both snake_case and "Original Name" format for keys.
 
-Fields to extract:
-{field_list}
+Fields: Organization Name, Job Code, Position title, Leadership Competency Category, Current Compensation Grade, Comments/Notes, Typically Reports to, Employee ID, Manager ID, Direct report counts, People Management Flag, Job Level, Minimum Experience, Pay grade, Department, Job Title (from Source Job Description), Job Description, Base Salary, Job Location
 
 Document:
+---
 {text[:10000]}
+---
 
-Return JSON with keys exactly: Organization Name, Job Code, Position title, Leadership Competency Category, Current Compensation Grade, Comments/Notes, Typically Reports to, Employee ID, Manager ID, Direct report counts, People Management Flag, Job Level, Minimum Experience, Pay grade, Department, Job Title (from Source Job Description), Job Description, Base Salary, Job Location"""
+JSON:"""
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             r = await client.post(
@@ -291,13 +379,9 @@ Return JSON with keys exactly: Organization Name, Job Code, Position title, Lead
             out = json.loads(content)
             if not isinstance(out, dict):
                 return {}
-            result = {}
-            for f in MANDATORY_FIELDS:
-                val = out.get(f) or _match_llm_key(out, f)
-                if val:
-                    result[f] = val[:8000] if f == "Job Description" else val[:1000]
-                else:
-                    result[f] = ""
+            if debug:
+                print(f"  [LLM] Raw keys from API: {list(out.keys())}")
+            result = _map_llm_response_to_fields(out)
             filled = sum(1 for v in result.values() if v)
             print(f"  [LLM] OK: extracted {filled}/{len(MANDATORY_FIELDS)} fields")
             return result
@@ -375,7 +459,7 @@ async def extract_and_save(input_dir: Path, output_path: Path, use_llm: bool = T
         do_llm = use_llm and bool(os.getenv("CORE_API_KEY"))
         if do_llm:
             print(f"  [{i+1}/{len(files)}] {file_path.name} - calling LLM...")
-            llm_fields = await _extract_fields_with_llm(text)
+            llm_fields = await _extract_fields_with_llm(text, debug=debug)
             for f in MANDATORY_FIELDS:
                 if not fields[f] and llm_fields.get(f):
                     fields[f] = llm_fields[f]
