@@ -22,6 +22,29 @@ import pandas as pd
 
 WORD_EXTENSIONS = {".doc", ".docx"}
 
+# Mandatory/Required fields from Data Attributes (Job Solutions)
+MANDATORY_FIELDS = [
+    "Organization Name",
+    "Job Code",
+    "Position title",
+    "Leadership Competency Category",
+    "Current Compensation Grade",
+    "Comments/Notes",
+    "Typically Reports to",
+    "Employee ID",
+    "Manager ID",
+    "Direct report counts",
+    "People Management Flag",
+    "Job Level",
+    "Minimum Experience",
+    "Pay grade",
+    "Department",
+    "Job Title (from Source Job Description)",
+    "Job Description",
+    "Base Salary",
+    "Job Location",
+]
+
 
 def preprocess_text(text: str | None) -> str:
     """Clean and preprocess: remove URLs, HTML, control chars, normalize whitespace."""
@@ -146,21 +169,64 @@ def extract_text(content: bytes, filename: str) -> str:
         return f"[ERROR] Extraction failed: {e}"
 
 
+def _is_field_label(line: str) -> bool:
+    return any(line.lower().startswith(f.lower()) for f in MANDATORY_FIELDS)
+
+
+def parse_fields(text: str) -> dict[str, str]:
+    """Extract field values from preprocessed text. Handles 'Field: value', 'Field - value', table rows."""
+    text = text or ""
+    result = {f: "" for f in MANDATORY_FIELDS}
+    lines = [ln.strip() for ln in text.replace("\r", "\n").split("\n") if ln.strip()]
+    for i, line in enumerate(lines):
+        for field in MANDATORY_FIELDS:
+            if result[field]:
+                continue
+            if not line.lower().startswith(field.lower()):
+                continue
+            for sep in (":", "-"):
+                if sep in line:
+                    val = line.split(sep, 1)[1].strip()
+                    max_len = 8000 if field == "Job Description" else 1000
+                    result[field] = val[:max_len]
+                    break
+            if not result[field] and i + 1 < len(lines) and not _is_field_label(lines[i + 1]):
+                result[field] = lines[i + 1][:1000]
+            break
+    for field in MANDATORY_FIELDS:
+        if result[field]:
+            continue
+        escaped = re.escape(field)
+        m = re.search(rf"{escaped}\s*[:\-]\s*(.+?)(?=\n\s*[A-Z]|\n\n|$)", text, re.DOTALL | re.I)
+        if m:
+            val = re.sub(r"\s+", " ", m.group(1).strip())
+            max_len = 8000 if field == "Job Description" else 1000
+            result[field] = val[:max_len]
+    return result
+
+
 def extract_and_save(input_dir: Path, output_path: Path) -> None:
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
         return
     print(f"Extracting and preprocessing {len(files)} file(s)...")
-    results = []
+    rows = []
     for i, file_path in enumerate(files):
         content = file_path.read_bytes()
         text = extract_text(content, file_path.name)
-        results.append((file_path.name, text))
+        fields = parse_fields(text)
+        row = {"fileName": file_path.name, "extractedText": text}
+        row.update(fields)
+        rows.append(row)
         print(f"  [{i+1}/{len(files)}] {file_path.name}")
-    df = pd.DataFrame(results, columns=["fileName", "extractedText"])
+    df = pd.DataFrame(rows)
+    key_cols = ["fileName", "Organization Name", "Job Code", "Position title", "Job Title (from Source Job Description)", "Job Description", "Base Salary", "Job Location"]
+    rest = [c for c in MANDATORY_FIELDS if c not in key_cols[1:]]
+    col_order = key_cols + rest + ["extractedText"]
+    df = df[[c for c in col_order if c in df.columns]]
     df.to_excel(output_path, index=False, engine="openpyxl")
-    print(f"Wrote {len(results)} rows to {output_path}")
+    print(f"Wrote {len(rows)} rows to {output_path}")
 
 
 def main() -> None:
