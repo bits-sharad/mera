@@ -229,51 +229,80 @@ def _is_field_label(line: str) -> bool:
     return any(line.lower().startswith(f.lower()) for f in MANDATORY_FIELDS)
 
 
-async def _extract_fields_with_llm(text: str) -> dict[str, str]:
-    """Use Mercer LLM API to extract field values from document text when parsing fails."""
+def _normalize_key(k: str) -> str:
+    return re.sub(r"\s+", " ", k.lower().strip().replace("_", " ").replace("-", " "))
+
+
+def _match_llm_key(out: dict, field: str) -> str:
+    """Find value in LLM output using fuzzy key match."""
+    fn = _normalize_key(field)
+    for k, v in out.items():
+        if _normalize_key(k) == fn and v is not None:
+            return str(v).strip()
+    return ""
+
+
+async def _extract_fields_with_llm(text: str, verbose: bool = False) -> dict[str, str]:
+    """Use Mercer LLM API to extract field values from document text."""
     url = os.getenv("CORE_API_BASE_URL", "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/coreapi/openai/v1/deployments/mmc-tech-gpt-35-turbo-smart-latest/chat/completions")
     api_key = os.getenv("CORE_API_KEY")
-    if not api_key or not text or len(text) < 20:
+    if not api_key:
+        if verbose:
+            print("  [LLM] CORE_API_KEY not set, skipping")
         return {}
-    fields_str = ", ".join(f'"{f}"' for f in MANDATORY_FIELDS)
-    prompt = f"""Extract these fields from the document text below. Return ONLY valid JSON with keys exactly as listed. Use empty string "" for missing values.
+    if not text or len(text) < 20:
+        if verbose:
+            print("  [LLM] Text too short, skipping")
+        return {}
+    field_list = "\n".join(f"- {f}" for f in MANDATORY_FIELDS)
+    prompt = f"""Extract these fields from the document. Return ONLY valid JSON. Use "" for missing.
 
-Fields: {fields_str}
+Fields to extract:
+{field_list}
 
-Document text:
----
-{text[:12000]}
----
+Document:
+{text[:10000]}
 
-JSON:"""
+Return JSON with keys exactly: Organization Name, Job Code, Position title, Leadership Competency Category, Current Compensation Grade, Comments/Notes, Typically Reports to, Employee ID, Manager ID, Direct report counts, People Management Flag, Job Level, Minimum Experience, Pay grade, Department, Job Title (from Source Job Description), Job Description, Base Salary, Job Location"""
     try:
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=90) as client:
             r = await client.post(
                 url,
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "x-api-key": api_key},
                 json={
                     "messages": [{"role": "user", "content": prompt}],
-                    "model": "mmc-tech-gpt-35-turbo-smart-latest",
+                    "model": os.getenv("CORE_API_MODEL", "mmc-tech-gpt-35-turbo-smart-latest"),
                     "temperature": 0,
                     "max_tokens": 4096,
                 },
             )
             r.raise_for_status()
             data = r.json()
-            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            content = content.strip()
-            if content.startswith("```"):
-                content = re.sub(r"^```(?:json)?\s*", "", content)
-                content = re.sub(r"\s*```$", "", content)
+            content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or (data.get("choices") or [{}])[0].get("text", "")
+            content = str(content).strip()
+            if not content:
+                if verbose:
+                    print("  [LLM] Empty response")
+                return {}
+            for start in ("```json", "```"):
+                if content.startswith(start):
+                    content = content[len(start):].strip()
+                if content.endswith("```"):
+                    content = content[:-3].strip()
             out = json.loads(content)
-            result = {f: "" for f in MANDATORY_FIELDS}
+            if not isinstance(out, dict):
+                return {}
+            result = {}
             for f in MANDATORY_FIELDS:
-                val = out.get(f, "")
-                if val is not None:
-                    val = str(val).strip()
+                val = out.get(f) or _match_llm_key(out, f)
+                if val:
                     result[f] = val[:8000] if f == "Job Description" else val[:1000]
+                else:
+                    result[f] = ""
             return result
-    except (json.JSONDecodeError, KeyError, IndexError, httpx.HTTPError):
+    except Exception as e:
+        if verbose:
+            print(f"  [LLM] Error: {e}")
         return {}
 
 
@@ -313,12 +342,14 @@ def _count_empty(fields: dict) -> int:
     return sum(1 for v in fields.values() if not (v and str(v).strip()))
 
 
-async def extract_and_save(input_dir: Path, output_path: Path) -> None:
+async def extract_and_save(input_dir: Path, output_path: Path, use_llm: bool = True) -> None:
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
         return
     print(f"Extracting and preprocessing {len(files)} file(s)...")
+    if use_llm and not os.getenv("CORE_API_KEY"):
+        print("  (Set CORE_API_KEY in .env to use LLM for field extraction)")
     rows = []
     for i, file_path in enumerate(files):
         content = file_path.read_bytes()
@@ -328,15 +359,17 @@ async def extract_and_save(input_dir: Path, output_path: Path) -> None:
         fields = {}
         for f in MANDATORY_FIELDS:
             fields[f] = fields_from_tables.get(f) or fields_from_text.get(f) or ""
-        use_llm = os.getenv("CORE_API_KEY") and (_count_empty(fields) > len(MANDATORY_FIELDS) // 2 or os.getenv("USE_LLM") == "1")
-        if use_llm:
-            print(f"  [{i+1}/{len(files)}] {file_path.name} - using LLM for empty fields...")
-            llm_fields = await _extract_fields_with_llm(text)
+        do_llm = use_llm and bool(os.getenv("CORE_API_KEY"))
+        if do_llm:
+            print(f"  [{i+1}/{len(files)}] {file_path.name} - calling LLM...")
+            llm_fields = await _extract_fields_with_llm(text, verbose=True)
             for f in MANDATORY_FIELDS:
                 if not fields[f] and llm_fields.get(f):
                     fields[f] = llm_fields[f]
         else:
             print(f"  [{i+1}/{len(files)}] {file_path.name}")
+        if _count_empty(fields) == len(MANDATORY_FIELDS) and text:
+            fields["Job Description"] = text[:8000]
         row = {"fileName": file_path.name, "extractedText": text}
         row.update(fields)
         rows.append(row)
@@ -353,12 +386,13 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("-i", "--input-dir", type=Path, required=True, help="Folder with Word docs")
     p.add_argument("-o", "--output", type=Path, default=Path("extracted_output.xlsx"), help="Output Excel")
+    p.add_argument("--no-llm", action="store_true", help="Skip LLM, use table/text parsing only")
     args = p.parse_args()
     if not args.input_dir.exists():
         print(f"Directory not found: {args.input_dir}")
         exit(1)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    asyncio.run(extract_and_save(args.input_dir, args.output))
+    asyncio.run(extract_and_save(args.input_dir, args.output, use_llm=not args.no_llm))
 
 
 if __name__ == "__main__":
