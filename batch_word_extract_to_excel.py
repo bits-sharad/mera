@@ -23,6 +23,7 @@ _script_dir = Path(__file__).resolve().parent
 try:
     from dotenv import load_dotenv
     load_dotenv(_script_dir / ".env")
+    load_dotenv(Path.cwd() / ".env")
 except ImportError:
     pass
 
@@ -242,18 +243,17 @@ def _match_llm_key(out: dict, field: str) -> str:
     return ""
 
 
-async def _extract_fields_with_llm(text: str, verbose: bool = False) -> dict[str, str]:
+async def _extract_fields_with_llm(text: str) -> dict[str, str]:
     """Use Mercer LLM API to extract field values from document text."""
     url = os.getenv("CORE_API_BASE_URL", "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/coreapi/openai/v1/deployments/mmc-tech-gpt-35-turbo-smart-latest/chat/completions")
     api_key = os.getenv("CORE_API_KEY")
     if not api_key:
-        if verbose:
-            print("  [LLM] CORE_API_KEY not set, skipping")
+        print("  [LLM] SKIP: CORE_API_KEY not set. Add to .env in script folder.")
         return {}
     if not text or len(text) < 20:
-        if verbose:
-            print("  [LLM] Text too short, skipping")
+        print("  [LLM] SKIP: Extracted text too short or empty")
         return {}
+    print("  [LLM] Calling Mercer API...")
     field_list = "\n".join(f"- {f}" for f in MANDATORY_FIELDS)
     prompt = f"""Extract these fields from the document. Return ONLY valid JSON. Use "" for missing.
 
@@ -281,8 +281,7 @@ Return JSON with keys exactly: Organization Name, Job Code, Position title, Lead
             content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or (data.get("choices") or [{}])[0].get("text", "")
             content = str(content).strip()
             if not content:
-                if verbose:
-                    print("  [LLM] Empty response")
+                print("  [LLM] Empty response from API")
                 return {}
             for start in ("```json", "```"):
                 if content.startswith(start):
@@ -299,10 +298,17 @@ Return JSON with keys exactly: Organization Name, Job Code, Position title, Lead
                     result[f] = val[:8000] if f == "Job Description" else val[:1000]
                 else:
                     result[f] = ""
+            filled = sum(1 for v in result.values() if v)
+            print(f"  [LLM] OK: extracted {filled}/{len(MANDATORY_FIELDS)} fields")
             return result
+    except httpx.HTTPStatusError as e:
+        print(f"  [LLM] HTTP {e.response.status_code}: {e.response.text[:200]}")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"  [LLM] JSON parse error: {e}")
+        return {}
     except Exception as e:
-        if verbose:
-            print(f"  [LLM] Error: {e}")
+        print(f"  [LLM] Error: {e}")
         return {}
 
 
@@ -342,18 +348,25 @@ def _count_empty(fields: dict) -> int:
     return sum(1 for v in fields.values() if not (v and str(v).strip()))
 
 
-async def extract_and_save(input_dir: Path, output_path: Path, use_llm: bool = True) -> None:
+async def extract_and_save(input_dir: Path, output_path: Path, use_llm: bool = True, debug: bool = False) -> None:
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
         return
     print(f"Extracting and preprocessing {len(files)} file(s)...")
-    if use_llm and not os.getenv("CORE_API_KEY"):
-        print("  (Set CORE_API_KEY in .env to use LLM for field extraction)")
+    api_key = os.getenv("CORE_API_KEY")
+    if use_llm:
+        if api_key:
+            print(f"  LLM: enabled (CORE_API_KEY set, {len(api_key)} chars)")
+        else:
+            print("  LLM: disabled - CORE_API_KEY not set. Create .env with CORE_API_KEY=your-key")
     rows = []
     for i, file_path in enumerate(files):
         content = file_path.read_bytes()
         text = extract_text(content, file_path.name)
+        if debug and i == 0:
+            print(f"  [DEBUG] Extracted text length: {len(text)} chars")
+            print(f"  [DEBUG] Sample: {repr(text[:500])[:500]}...")
         fields_from_tables = _extract_fields_from_tables(content) if file_path.suffix.lower() == ".docx" else {}
         fields_from_text = parse_fields(text)
         fields = {}
@@ -362,7 +375,7 @@ async def extract_and_save(input_dir: Path, output_path: Path, use_llm: bool = T
         do_llm = use_llm and bool(os.getenv("CORE_API_KEY"))
         if do_llm:
             print(f"  [{i+1}/{len(files)}] {file_path.name} - calling LLM...")
-            llm_fields = await _extract_fields_with_llm(text, verbose=True)
+            llm_fields = await _extract_fields_with_llm(text)
             for f in MANDATORY_FIELDS:
                 if not fields[f] and llm_fields.get(f):
                     fields[f] = llm_fields[f]
@@ -387,12 +400,13 @@ def main() -> None:
     p.add_argument("-i", "--input-dir", type=Path, required=True, help="Folder with Word docs")
     p.add_argument("-o", "--output", type=Path, default=Path("extracted_output.xlsx"), help="Output Excel")
     p.add_argument("--no-llm", action="store_true", help="Skip LLM, use table/text parsing only")
+    p.add_argument("--debug", action="store_true", help="Print extracted text sample for first file")
     args = p.parse_args()
     if not args.input_dir.exists():
         print(f"Directory not found: {args.input_dir}")
         exit(1)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    asyncio.run(extract_and_save(args.input_dir, args.output, use_llm=not args.no_llm))
+    asyncio.run(extract_and_save(args.input_dir, args.output, use_llm=not args.no_llm, debug=args.debug))
 
 
 if __name__ == "__main__":
