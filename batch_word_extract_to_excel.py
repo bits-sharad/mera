@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 """
-Extract text from Word documents using Python libraries and export to Excel.
+Extract text from Word documents and export to Excel with structured fields.
 
-Extraction: python-docx (paragraphs, tables, headers, footers) + docx2txt for .doc
-Preprocessing: remove URLs, HTML, control chars, normalize whitespace.
-
-Usage:
-    python batch_word_extract_to_excel.py -i "path/to/docs" -o "output.xlsx"
+Uses table/text parsing + Mercer LLM API to fill empty fields.
 """
 from __future__ import annotations
 
 import argparse
+import asyncio
 import io
+import json
 import os
 import re
 import tempfile
 import unicodedata
 from pathlib import Path
 
+import httpx
 import pandas as pd
+
+_script_dir = Path(__file__).resolve().parent
+try:
+    from dotenv import load_dotenv
+    load_dotenv(_script_dir / ".env")
+except ImportError:
+    pass
 
 WORD_EXTENSIONS = {".doc", ".docx"}
 
@@ -223,6 +229,54 @@ def _is_field_label(line: str) -> bool:
     return any(line.lower().startswith(f.lower()) for f in MANDATORY_FIELDS)
 
 
+async def _extract_fields_with_llm(text: str) -> dict[str, str]:
+    """Use Mercer LLM API to extract field values from document text when parsing fails."""
+    url = os.getenv("CORE_API_BASE_URL", "https://stg1.mmc-bedford-int-non-prod-ingress.mgti.mmc.com/coreapi/openai/v1/deployments/mmc-tech-gpt-35-turbo-smart-latest/chat/completions")
+    api_key = os.getenv("CORE_API_KEY")
+    if not api_key or not text or len(text) < 20:
+        return {}
+    fields_str = ", ".join(f'"{f}"' for f in MANDATORY_FIELDS)
+    prompt = f"""Extract these fields from the document text below. Return ONLY valid JSON with keys exactly as listed. Use empty string "" for missing values.
+
+Fields: {fields_str}
+
+Document text:
+---
+{text[:12000]}
+---
+
+JSON:"""
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                url,
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "x-api-key": api_key},
+                json={
+                    "messages": [{"role": "user", "content": prompt}],
+                    "model": "mmc-tech-gpt-35-turbo-smart-latest",
+                    "temperature": 0,
+                    "max_tokens": 4096,
+                },
+            )
+            r.raise_for_status()
+            data = r.json()
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            content = content.strip()
+            if content.startswith("```"):
+                content = re.sub(r"^```(?:json)?\s*", "", content)
+                content = re.sub(r"\s*```$", "", content)
+            out = json.loads(content)
+            result = {f: "" for f in MANDATORY_FIELDS}
+            for f in MANDATORY_FIELDS:
+                val = out.get(f, "")
+                if val is not None:
+                    val = str(val).strip()
+                    result[f] = val[:8000] if f == "Job Description" else val[:1000]
+            return result
+    except (json.JSONDecodeError, KeyError, IndexError, httpx.HTTPError):
+        return {}
+
+
 def parse_fields(text: str) -> dict[str, str]:
     """Extract field values from preprocessed text. Handles 'Field: value', 'Field - value', table rows."""
     text = text or ""
@@ -255,7 +309,11 @@ def parse_fields(text: str) -> dict[str, str]:
     return result
 
 
-def extract_and_save(input_dir: Path, output_path: Path) -> None:
+def _count_empty(fields: dict) -> int:
+    return sum(1 for v in fields.values() if not (v and str(v).strip()))
+
+
+async def extract_and_save(input_dir: Path, output_path: Path) -> None:
     files = sorted(p for p in input_dir.iterdir() if p.suffix.lower() in WORD_EXTENSIONS)
     if not files:
         print(f"No .doc/.docx files in {input_dir}")
@@ -270,10 +328,18 @@ def extract_and_save(input_dir: Path, output_path: Path) -> None:
         fields = {}
         for f in MANDATORY_FIELDS:
             fields[f] = fields_from_tables.get(f) or fields_from_text.get(f) or ""
+        use_llm = os.getenv("CORE_API_KEY") and (_count_empty(fields) > len(MANDATORY_FIELDS) // 2 or os.getenv("USE_LLM") == "1")
+        if use_llm:
+            print(f"  [{i+1}/{len(files)}] {file_path.name} - using LLM for empty fields...")
+            llm_fields = await _extract_fields_with_llm(text)
+            for f in MANDATORY_FIELDS:
+                if not fields[f] and llm_fields.get(f):
+                    fields[f] = llm_fields[f]
+        else:
+            print(f"  [{i+1}/{len(files)}] {file_path.name}")
         row = {"fileName": file_path.name, "extractedText": text}
         row.update(fields)
         rows.append(row)
-        print(f"  [{i+1}/{len(files)}] {file_path.name}")
     df = pd.DataFrame(rows)
     key_cols = ["fileName", "Organization Name", "Job Code", "Position title", "Job Title (from Source Job Description)", "Job Description", "Base Salary", "Job Location"]
     rest = [c for c in MANDATORY_FIELDS if c not in key_cols[1:]]
@@ -292,7 +358,7 @@ def main() -> None:
         print(f"Directory not found: {args.input_dir}")
         exit(1)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    extract_and_save(args.input_dir, args.output)
+    asyncio.run(extract_and_save(args.input_dir, args.output))
 
 
 if __name__ == "__main__":
